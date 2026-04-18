@@ -13,7 +13,7 @@ const pomodoroSchema = new mongoose.Schema(
     time: {
       type: Number,
       required: true
-    }, // minutes
+    }, // seconds
 
     date: {
       type: Date,

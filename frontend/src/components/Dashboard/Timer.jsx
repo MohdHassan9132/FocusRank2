@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useStudyTime } from "../../context/StudyTimeContext";
+import { useAuth } from "../../context/AuthContext";
+import { createPomodoro, getTodayPomodoro } from "../../api/pomodoro.api";
 
 export default function StudyManager() {
 
@@ -11,8 +13,10 @@ export default function StudyManager() {
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
-  const {productiveSeconds, addProductiveSeconds} = useStudyTime();
+  const { productiveSeconds, addProductiveSeconds } = useStudyTime();
+  const { isAuthenticated } = useAuth();
   const [customMinutes, setCustomMinutes] = useState("");
+  const [todayTotalSeconds, setTodayTotalSeconds] = useState(0);
 
   // EI additions
   const [sessionIntent, setSessionIntent] = useState("");
@@ -21,16 +25,48 @@ export default function StudyManager() {
   const elapsedSeconds = totalSeconds - secondsLeft;
   const progress = (elapsedSeconds / totalSeconds) * 100;
 
+  /* ---------------- Fetch Today's Total Time ---------------- */
+  const fetchTodayTotal = async () => {
+    if (!isAuthenticated) return;
+    
+    try {
+      const response = await getTodayPomodoro();
+      // Response structure: { data: { data: { totalTime } } }
+      const totalTime = response.data.data.totalTime || 0;
+      setTodayTotalSeconds(totalTime);
+    } catch (error) {
+      console.error("Failed to fetch today's total:", error);
+    }
+  };
+
+  // Fetch today's total on mount and when authentication changes
+  useEffect(() => {
+    fetchTodayTotal();
+  }, [isAuthenticated]);
+
+  /* ---------------- Helper: Save to Backend ---------------- */
+const saveSession = async (seconds) => {
+  if (!isAuthenticated) return;
+  if (seconds < 10) return;
+  
+  try {
+    await createPomodoro(seconds);  // ✅ passes seconds (number)
+    await fetchTodayTotal();
+  } catch (error) {
+    console.error("Failed to save study session:", error);
+  }
+};
+
   /* ---------------- Timer Engine ---------------- */
   useEffect(() => {
     if (!isRunning) return;
 
     if (secondsLeft === 0) {
       setIsRunning(false);
+      saveSession(elapsedSeconds);
       addProductiveSeconds(elapsedSeconds);
       setSecondsLeft(totalSeconds);
-        setReflection(null);
-      
+      setReflection(null);
     }
 
     const id = setInterval(() => {
@@ -48,8 +84,8 @@ export default function StudyManager() {
   };
 
   const formatProductive = () => {
-    const h = Math.floor(productiveSeconds / 3600);
-    const m = Math.floor((productiveSeconds % 3600) / 60);
+    const h = Math.floor(todayTotalSeconds / 3600);
+    const m = Math.floor((todayTotalSeconds % 3600) / 60);
     return `${h}h ${m}m`;
   };
 
@@ -85,6 +121,7 @@ export default function StudyManager() {
   };
 
   const addStudiedTime = () => {
+    saveSession(elapsedSeconds);
     addProductiveSeconds(elapsedSeconds);
     setSecondsLeft(totalSeconds);
     setIsPaused(false);
