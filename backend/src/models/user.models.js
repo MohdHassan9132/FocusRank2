@@ -2,12 +2,25 @@ import mongoose, { Schema } from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from 'bcrypt';
 
-const userSchema = new Schema({
+async function generateUniqueUsername() {
+    let username;
+    let exists = true;
 
+    while (exists) {
+        const randomNum = Math.floor(100 + Math.random() * 900);
+        username = `person${randomNum}`;
+        exists = await mongoose.models.User.findOne({ username });
+    }
+
+    return username;
+}
+
+const userSchema = new Schema({
     username: {             // for leaderboard names
         type: String,
         required: false,
-        trim: true
+        trim: true,
+        unique: true
     },
     email: {                // for signup login
         type: String,
@@ -27,10 +40,6 @@ const userSchema = new Schema({
     field: {          // for caterogry leaderboard or profile
         type: String,
         trim: true
-    },
-    totalStudyMinutes: {
-        type: Number,
-        default: 0
     },
     avatar: {           // for actual photo or default given by system
         type: String,
@@ -64,6 +73,19 @@ userSchema.pre('save', async function () {
 userSchema.methods.isPasswordCorrect = async function (password) {
     return await bcrypt.compare(password, this.password);
 }
+
+userSchema.pre('save', async function () {
+
+    // hash password
+    if (this.isModified("password")) {
+        this.password = await bcrypt.hash(this.password, 8);
+    }
+
+    // generate username if missing
+    if (!this.username) {
+        this.username = await generateUniqueUsername();
+    }
+});
 
 userSchema.methods.generateAccessToken = function () {
     return jwt.sign({

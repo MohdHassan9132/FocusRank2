@@ -30,11 +30,13 @@ import userRouter from './routes/user.routes.js'
 import videoRouter from './routes/video.routes.js'
 import todoRouter from './routes/todo.routes.js'
 import pomodoroRouter from './routes/pomodoro.routes.js'
+import rankRouter from "./routes/rank.routes.js"
 
 app.use("/api/v1/users", userRouter)
 app.use("/api/videos", videoRouter)
 app.use("/api/v1/todos", todoRouter)
 app.use("/api/v1/pomodoro",pomodoroRouter)
+app.use("/api/v1/rank", rankRouter)
 
 
 export { app }
