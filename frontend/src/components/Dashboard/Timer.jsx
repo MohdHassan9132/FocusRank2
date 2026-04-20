@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useStudyTime } from "../../context/StudyTimeContext";
+import { useCallback, useEffect, useState } from "react";
+import { useTimer } from "../../context/TimerContext";
 import { useAuth } from "../../context/AuthContext";
 import {
   createPomodoro,
@@ -9,25 +9,34 @@ import {
 } from "../../api/pomodoro.api";
 
 export default function StudyManager() {
-  const [totalSeconds, setTotalSeconds] = useState(25 * 60);
-  const [secondsLeft, setSecondsLeft] = useState(25 * 60);
-  const [isRunning, setIsRunning] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [customMinutes, setCustomMinutes] = useState("");
+  // Use Timer context instead of local state
+  const {
+    totalSeconds,
+    secondsLeft,
+    isRunning,
+    isPaused,
+    sessionIntent,
+    reflection,
+    progress,
+    startTimer,
+    pauseTimer,
+    resumeTimer,
+    setDuration,
+    addStudiedTime,
+    setSessionIntent,
+    setReflection,
+    setSaveCallback,
+  } = useTimer();
+
   const [todayTotalSeconds, setTodayTotalSeconds] = useState(0);
   const [todaySessions, setTodaySessions] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [dateSessions, setDateSessions] = useState(null);
   const [weeklyData, setWeeklyData] = useState(null);
   const [statsRange, setStatsRange] = useState("today");
-  const [sessionIntent, setSessionIntent] = useState("");
-  const [reflection, setReflection] = useState(null);
+  const [customMinutes, setCustomMinutes] = useState("");
 
-  const { addProductiveSeconds } = useStudyTime();
   const { isAuthenticated } = useAuth();
-
-  const elapsedSeconds = totalSeconds - secondsLeft;
-  const progress = (elapsedSeconds / totalSeconds) * 100;
 
   const formatDuration = (seconds) => {
     const h = Math.floor(seconds / 3600);
@@ -113,7 +122,7 @@ export default function StudyManager() {
     }
   };
 
-  const saveSession = async (seconds) => {
+  const saveSession = useCallback(async (seconds) => {
     if (!isAuthenticated || seconds < 10) return;
 
     try {
@@ -126,7 +135,17 @@ export default function StudyManager() {
     } catch (error) {
       console.error("Failed to save study session:", error);
     }
-  };
+  }, [isAuthenticated, selectedDate]);
+
+  useEffect(() => {
+    setSaveCallback(saveSession);
+
+    return () => {
+      setSaveCallback(null);
+    };
+  }, [saveSession, setSaveCallback]);
+
+  
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -141,31 +160,6 @@ export default function StudyManager() {
     }
   }, [selectedDate, isAuthenticated]);
 
-  useEffect(() => {
-    if (!isRunning) return;
-
-    if (secondsLeft === 0) {
-      setIsRunning(false);
-      saveSession(elapsedSeconds);
-      addProductiveSeconds(elapsedSeconds);
-      setSecondsLeft(totalSeconds);
-      setReflection(null);
-    }
-
-    const id = setInterval(() => {
-      setSecondsLeft((s) => s - 1);
-    }, 1000);
-
-    return () => clearInterval(id);
-  }, [isRunning, secondsLeft, totalSeconds, elapsedSeconds]);
-
-  const setDuration = (minutes) => {
-    if (isRunning || isPaused) return;
-    const secs = minutes * 60;
-    setTotalSeconds(secs);
-    setSecondsLeft(secs);
-  };
-
   const applyCustomTime = () => {
     const min = Number(customMinutes);
     if (!min || min <= 0) return;
@@ -173,28 +167,7 @@ export default function StudyManager() {
     setCustomMinutes("");
   };
 
-  const start = () => {
-    setIsRunning(true);
-    setIsPaused(false);
-  };
-
-  const pause = () => {
-    setIsRunning(false);
-    setIsPaused(true);
-  };
-
-  const resume = () => {
-    setIsRunning(true);
-    setIsPaused(false);
-  };
-
-  const addStudiedTime = () => {
-    saveSession(elapsedSeconds);
-    addProductiveSeconds(elapsedSeconds);
-    setSecondsLeft(totalSeconds);
-    setIsPaused(false);
-    setReflection(null);
-  };
+  
 
   const cardClass =
     "rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm";
@@ -402,7 +375,7 @@ export default function StudyManager() {
 
           {!isRunning && !isPaused && (
             <button
-              onClick={start}
+              onClick={startTimer}
               className="w-48 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-bold text-lg"
             >
               Start
@@ -411,7 +384,7 @@ export default function StudyManager() {
 
           {isRunning && (
             <button
-              onClick={pause}
+              onClick={pauseTimer}
               className="w-48 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-bold text-lg"
             >
               Pause
@@ -422,7 +395,7 @@ export default function StudyManager() {
             <>
               <div className="flex gap-4">
                 <button
-                  onClick={resume}
+                  onClick={resumeTimer}
                   className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-bold"
                 >
                   Resume

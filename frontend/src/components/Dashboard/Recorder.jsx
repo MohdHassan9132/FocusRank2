@@ -44,13 +44,37 @@ export default function FileUploadBox() {
     };
   };
 
-  const confirmTime = () => {
-    if (durationMin === null) return;
+const confirmTime = async () => {
+  if (durationMin === null) return;
 
-    addProductiveSeconds(durationMin * 60);
-    setDurationMin(null);
-    setFileName("");
-  };
+  // keep local study time update
+  addProductiveSeconds(durationMin * 60);
+
+  // also upload to server if a file exists
+  if (videoFile) {
+    setLoading(true);
+    setError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("source", "local");
+      formData.append("video", videoFile);
+
+      const res = await createVideoSession(formData);
+      setLastDuration(res.data.duration);
+      fetchStats();
+    } catch (err) {
+      setError(err.response?.data?.message || "Video upload failed");
+      return;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  setDurationMin(null);
+  setFileName("");
+  setVideoFile(null);
+};
 
   const fetchStats = async () => {
     try {
@@ -213,20 +237,15 @@ export default function FileUploadBox() {
               </span>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={confirmTime}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 px-4 py-2.5 text-sm font-bold"
-              >
-                Add Study Time
-              </button>
-              <button
-                onClick={handleLocalSubmit}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 px-4 py-2.5 text-sm font-bold"
-              >
-                Upload to Server
-              </button>
-            </div>
+<div className="flex flex-wrap gap-3">
+  <button
+    onClick={confirmTime}
+    disabled={loading}
+    className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2.5 text-sm font-bold"
+  >
+    {loading ? "Uploading..." : "Add Study Time"}
+  </button>
+</div>
           </div>
         )}
 

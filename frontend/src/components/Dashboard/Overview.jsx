@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useStudyTime } from "../../context/StudyTimeContext";
+import { useTimer } from "../../context/TimerContext";
 import {
   getDailyAnalytics,
   getWeeklyAnalytics,
@@ -32,7 +32,7 @@ ChartJS.register(
 );
 
 function Overview() {
-  const { productiveSeconds } = useStudyTime();
+const { productiveSeconds } = useTimer();
   const [daily, setDaily] = useState(null);
   const [weekly, setWeekly] = useState(null);
   const [monthly, setMonthly] = useState(null);

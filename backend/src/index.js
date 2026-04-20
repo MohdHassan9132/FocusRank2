@@ -8,8 +8,7 @@ dotenv.config({
 connectDB()
     .then(() => {
         app.listen(process.env.PORT || 8000, () => {
-            console.log(`⚙️ Server is running at port : ${process.env.PORT}/n
-                cloudinary keys ${process.env.API_KEY}`);
+            console.log(`⚙️ Server is running at port : ${process.env.PORT}`);
         })
     })
     .catch((err) => {

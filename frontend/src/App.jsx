@@ -5,7 +5,7 @@ import Layout from "./Layout";
 import Signup from "./components/Auth/Signup";
 import Login from "./components/Auth/Login";
 import Dashboard from "./components/Dashboard/Dashboard";
-import { StudyTimeProvider } from "./context/StudyTimeContext";
+import { TimerProvider } from "./context/TimerContext";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -36,9 +36,9 @@ function ScrollToHash() {
 function App() {
   return (
     <AuthProvider>
-      <StudyTimeProvider>
+      <TimerProvider>
         <BrowserRouter>
-        <ScrollToHash/>
+          <ScrollToHash />
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<Hero />} />
@@ -46,13 +46,19 @@ function App() {
               <Route path="signup" element={<Signup />} />
               <Route path="login" element={<Login />} />
             </Route>
-            <Route path="/dashboard" element={ <ProtectedRoute> <Dashboard /> </ProtectedRoute> } />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </BrowserRouter>
-      </StudyTimeProvider>
+      </TimerProvider>
     </AuthProvider>
   );
 }
 
 export default App;
-
