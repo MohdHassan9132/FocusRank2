@@ -1,25 +1,31 @@
-// frontend/src/api/axios.js
+import axios from "axios";
 
-import axios from "axios"
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
 
-const API = axios.create({
-  baseURL: "http://localhost:8000/api/v1",
-  withCredentials: true
-})
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("accessToken");
 
-/**
- * Request interceptor — automatically attach Authorization header
- * if an access token exists in localStorage.
- */
-API.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("accessToken")
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+
+      window.location.href = "/login";
     }
-    return config
-  },
-  (error) => Promise.reject(error)
-)
 
-export default API
+    return Promise.reject(error);
+  }
+);
+
+export default api;

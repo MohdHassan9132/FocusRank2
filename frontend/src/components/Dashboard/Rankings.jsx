@@ -13,33 +13,28 @@ export default function Rankings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Format total time from seconds to hours and minutes
   const formatStudyTime = (seconds) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     return `${hours}h ${minutes}m`;
   };
 
-  // Fetch rankings when period changes
   useEffect(() => {
     const loadRankings = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         const response = await fetchRankings(period);
-        
-        // Transform API data to match the table format
         const transformedData = response.data.map((item, index) => ({
           rank: index + 1,
           userId: item.userId,
           name: item.username,
           seconds: item.totalTime,
-          isYou: user && item.userId === user._id
+          isYou: user && item.userId === user._id,
         }));
-        
+
         setRankings(transformedData);
-        
       } catch (err) {
         setError("Failed to load rankings. Please try again later.");
         console.error(err);
@@ -47,65 +42,67 @@ export default function Rankings() {
         setLoading(false);
       }
     };
-    
+
     if (user) {
       loadRankings();
     }
   }, [period, user]);
 
-  // Find current user's data for the bottom card
-  const currentUser = rankings.find(userItem => userItem.isYou);
+  const currentUser = rankings.find((userItem) => userItem.isYou);
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-6 space-y-6">
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold">🏆 Study Rankings</h1>
+    <div className="w-full bg-white dark:bg-black transition-colors duration-300">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Study Rankings
+        </h1>
 
         <div className="flex gap-3">
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value)}
-            className="border rounded-md px-3 py-2 text-sm"
+            className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 transition-all duration-200 cursor-pointer"
           >
-            {PERIODS.map(p => (
-              <option key={p}>{p}</option>
+            {PERIODS.map((p) => (
+              <option key={p} value={p} className="bg-white dark:bg-zinc-900">
+                {p}
+              </option>
             ))}
           </select>
 
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="border rounded-md px-3 py-2 text-sm"
+            className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-xl px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 transition-all duration-200 cursor-pointer"
           >
-            {CATEGORIES.map(c => (
-              <option key={c}>{c}</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c} className="bg-white dark:bg-zinc-900">
+                {c}
+              </option>
             ))}
           </select>
         </div>
       </div>
 
-      {/* Loading State */}
       {loading && (
         <div className="text-center py-8">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-          <p className="mt-2 text-gray-600">Loading rankings...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400" />
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Loading rankings...
+          </p>
         </div>
       )}
 
-      {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-center">
+        <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl p-4 text-red-700 dark:text-red-300 text-center">
           {error}
         </div>
       )}
 
-      {/* Leaderboard Table */}
       {!loading && !error && (
         <>
-          <div className="bg-white border rounded-xl overflow-hidden">
-            <div className="grid grid-cols-3 px-4 py-3 bg-gray-100 text-sm font-semibold">
+          <div className="rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden">
+            <div className="grid grid-cols-3 px-4 py-3 bg-gray-50 dark:bg-zinc-950 text-sm font-medium text-gray-700 dark:text-gray-300">
               <span>Rank</span>
               <span>User</span>
               <span>Study Time</span>
@@ -114,37 +111,48 @@ export default function Rankings() {
             {rankings.map((userItem) => (
               <div
                 key={userItem.rank}
-                className={`grid grid-cols-3 px-4 py-3 text-sm border-t ${
-                  userItem.isYou ? "bg-blue-50 font-semibold" : ""
+                className={`grid grid-cols-3 px-4 py-3 text-sm border-t border-gray-200 dark:border-zinc-800 ${
+                  userItem.isYou
+                    ? "bg-blue-50 dark:bg-zinc-800 font-semibold text-blue-700 dark:text-white"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800"
                 }`}
               >
-                <span>#{userItem.rank}</span>
+                <span className="font-mono">#{userItem.rank}</span>
                 <span>{userItem.name}</span>
-                <span>{formatStudyTime(userItem.seconds)}</span>
+                <span className="font-mono">
+                  {formatStudyTime(userItem.seconds)}
+                </span>
               </div>
             ))}
           </div>
 
-          {/* Your Rank Card - Only show if user is in rankings */}
           {currentUser && (
-            <div className="border rounded-xl p-4 bg-gradient-to-r from-blue-50 to-white">
-              <p className="text-sm text-gray-600">Your Position</p>
-              <div className="flex justify-between items-center mt-2">
+            <div className="mt-6 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-5">
+              <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                Your Position
+              </p>
+              <div className="flex justify-between items-center mt-2 flex-wrap gap-4">
                 <div>
-                  <p className="text-lg font-bold">Rank #{currentUser.rank}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Rank #{currentUser.rank}
+                  </p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                     {period} · {category}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold">{formatStudyTime(currentUser.seconds)} studied</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">
+                    {formatStudyTime(currentUser.seconds)}
+                  </p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    studied
+                  </p>
                 </div>
               </div>
             </div>
           )}
         </>
       )}
-
     </div>
   );
 }

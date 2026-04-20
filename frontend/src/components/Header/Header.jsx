@@ -1,56 +1,69 @@
 import { Link, NavLink } from "react-router-dom";
-import logo from "../../assets/logo.png";
+import { Moon, Sun } from "lucide-react";
+import blackLogo from "/black logo.png";
+import whiteLogo from "/whitelogo.png";
+import useTheme from "../../hooks/useTheme";
 
 export default function Header() {
+  const { theme, toggleTheme } = useTheme();
+
+  // Determine which logo to use based on theme
+  const logo = theme === "dark" ? blackLogo : whiteLogo;
+
   return (
-    <header className="shadow sticky z-50 top-0  bg-white dark:bg-black">
-      <nav className=" px-4 lg:px-6 py-2.5">
-        <div className="flex flex-wrap justify-between items-center mx-auto max-w-screen-xl">
-          <Link to="/" className="flex items-center">
-            <img src={logo} className="mr-3 ml-2 h-12" alt="Logo" />
-          </Link>
-          <div className="flex items-center lg:order-2">
-            <Link
-              to="/login"
-              className="text-gray-50 hover:bg-blue-600 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-4 lg:px-5 py-2 lg:py-2.5 mr-2 focus:outline-none"
-            >
-              Log in
+    <header className="sticky top-0 z-50 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-black shadow">
+      <nav className="px-4 lg:px-6 py-3">
+        <div className="flex items-center justify-between mx-auto max-w-screen-xl">
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center">
+              <img src={logo} className="h-12 w-auto" alt="Logo" />
             </Link>
           </div>
-          <div
-            className="hidden justify-between items-center w-full lg:flex lg:w-auto lg:order-1"
-            id="mobile-menu-2"
-          >
-            <ul className="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
+
+          <div className="hidden lg:flex items-center">
+            <ul className="flex items-center space-x-8">
               <li>
                 <NavLink
-                  to="/"
-                  className={({ isActive }) =>
-                    `block py-2 pr-4 pl-3 duration-200 ${isActive ? "text-white" : "text-gray-700"} border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-white lg:p-0`
-                  }
+                  to="/#home"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
                   Home
                 </NavLink>
               </li>
+
               <li>
                 <NavLink
-                  to="/feature"
-                  className={({ isActive }) =>
-                    `block py-2 pr-4 pl-3 duration-200 ${isActive ? "text-white" : "text-gray-700"} border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-white lg:p-0`
-                  }
+                  to="/#features"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
                   Features
                 </NavLink>
               </li>
+
               <li>
-                <Link
+                <NavLink
                   to="/#faqs"
-                  className="block py-2 pr-4 pl-3 duration-200 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-white lg:p-0"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
                   FAQs
-                </Link>
+                </NavLink>
               </li>
             </ul>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-700 dark:text-yellow-300 hover:scale-105 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all duration-200"
+            >
+              {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+            <Link
+              to="/login"
+              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
+            >
+              Log in
+            </Link>
           </div>
         </div>
       </nav>

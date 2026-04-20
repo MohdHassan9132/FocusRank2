@@ -1,21 +1,21 @@
-// Video-code is there, but its Commented-out
-
-import NavSidebar from "../Dashboard/Dashboard";
 import { NavLink } from "react-router-dom";
 import Faqs from "./Faqs";
 import MiddleSection from "./MiddleSection";
 
 export default function Hero() {
   return (
-    <>
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300">
       <div className="flex">
-        <section className="relative w-full pt-8 pb-14 bg-white dark:bg-black overflow-hidden">
-          <div className="absolute inset-0 bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-zinc-900 dark:via-black dark:to-purple-900/20"></div>
+        <section
+          id="home"
+          className="relative w-full pt-8 pb-14 bg-white dark:bg-black overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-zinc-900 dark:via-black dark:to-purple-900/20" />
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
             <div className="text-center">
               <div className="inline-flex items-center gap-2 px-4 py-0 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-sm font-medium mb-8">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                 Track Your Real Study Time
               </div>
 
@@ -41,7 +41,7 @@ export default function Hero() {
                     Get Started
                   </button>
                 </NavLink>
-                <button className="px-8 py-4 border-2 border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-zinc-600 font-semibold rounded-lg transition-colors duration-200">
+                <button className="px-8 py-4 border-2 border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 font-semibold rounded-lg transition-colors duration-200">
                   Watch How It Works
                 </button>
               </div>
@@ -50,19 +50,9 @@ export default function Hero() {
         </section>
       </div>
 
-      {/* <div>
-        <video className="h- w-full rounded-lg" controls>
-          <source
-            src="https://docs.material-tailwind.com/demo.mp4"
-            type="video/mp4"
-          />
-          Your browser does not support the video tag.
-        </video>
-      </div> */}
-
       <MiddleSection />
 
       <Faqs />
-    </>
+    </div>
   );
 }

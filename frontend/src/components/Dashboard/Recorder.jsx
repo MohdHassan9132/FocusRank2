@@ -4,16 +4,12 @@ import { createVideoSession, getVideoStats } from "../../api/video.api";
 
 export default function FileUploadBox() {
   const studyTime = useStudyTime() || {};
-
   const productiveSeconds = studyTime.productiveSeconds || 0;
-  const addProductiveSeconds =
-    studyTime.addProductiveSeconds || (() => {});
+  const addProductiveSeconds = studyTime.addProductiveSeconds || (() => {});
 
   const [durationMin, setDurationMin] = useState(null);
   const [fileName, setFileName] = useState("");
-
-  /* ──── New state for backend integration ──── */
-  const [dailyTotal, setDailyTotal] = useState(0)
+  const [dailyTotal, setDailyTotal] = useState(0);
   const [ytUrl, setYtUrl] = useState("");
   const [videoFile, setVideoFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -21,13 +17,6 @@ export default function FileUploadBox() {
   const [range, setRange] = useState("daily");
   const [stats, setStats] = useState(null);
   const [error, setError] = useState("");
-
-  /* ──── Helpers ──── */
-  const formatProductive = () => {
-    const h = Math.floor(productiveSeconds / 3600);
-    const m = Math.floor((productiveSeconds % 3600) / 60);
-    return `${h}h ${m}m`;
-  };
 
   const formatDuration = (seconds) => {
     const h = Math.floor(seconds / 3600);
@@ -39,7 +28,6 @@ export default function FileUploadBox() {
     return `${s}s`;
   };
 
-  /* ──── Local file handling (original) ──── */
   const handleFile = (file) => {
     if (!file) return;
 
@@ -51,7 +39,6 @@ export default function FileUploadBox() {
 
     video.onloadedmetadata = () => {
       URL.revokeObjectURL(video.src);
-
       const minutes = Math.round(video.duration / 60);
       setDurationMin(minutes);
     };
@@ -61,15 +48,9 @@ export default function FileUploadBox() {
     if (durationMin === null) return;
 
     addProductiveSeconds(durationMin * 60);
-
     setDurationMin(null);
     setFileName("");
   };
-
-  /* ──── Fetch stats whenever range changes ──── */
-  useEffect(() => {
-    fetchStats();
-  }, [range]);
 
   const fetchStats = async () => {
     try {
@@ -80,7 +61,19 @@ export default function FileUploadBox() {
     }
   };
 
-  /* ──── YouTube submit ──── */
+  useEffect(() => {
+    fetchStats();
+  }, [range]);
+
+  useEffect(() => {
+    const fetchDaily = async () => {
+      const res = await getVideoStats("daily");
+      setDailyTotal(res.data.totalSeconds);
+    };
+
+    fetchDaily();
+  }, []);
+
   const handleYtSubmit = async () => {
     if (!ytUrl.trim()) return;
     setLoading(true);
@@ -102,17 +95,6 @@ export default function FileUploadBox() {
     }
   };
 
-
-useEffect(() => {
-  const fetchDaily = async () => {
-    const res = await getVideoStats("daily")
-    setDailyTotal(res.data.totalSeconds)
-  }
-
-  fetchDaily()
-}, [])
-
-  /* ──── Local video submit (server) ──── */
   const handleLocalSubmit = async () => {
     if (!videoFile) return;
     setLoading(true);
@@ -134,55 +116,45 @@ useEffect(() => {
     }
   };
 
-  /* ──── Range button classes ──── */
-  const rangeBtnClass = (r) =>
-    `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
-      range === r
-        ? "bg-indigo-600 text-white shadow-md shadow-indigo-300"
-        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-    }`;
-
   return (
-    <div className="space-y-6">
-      {/* ──── Focused Time Today (original) ──── */}
-<div className="rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 p-4 text-white shadow-sm">
-  <div className="text-sm opacity-90">Focused Time Today</div>
-<div className="text-2xl font-semibold mt-1">
-  {formatDuration(dailyTotal)}
-</div>
-</div>
+    <div className="space-y-6 bg-white dark:bg-black transition-colors duration-300">
+      <div className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white p-5 shadow-sm transition-colors duration-200">
+        <div className="text-sm opacity-90 font-medium">Focused Time Today</div>
+        <div className="text-3xl font-bold mt-2">{formatDuration(dailyTotal)}</div>
+        <div className="text-sm opacity-90 mt-1">
+          Tracked locally: {formatDuration(productiveSeconds)}
+        </div>
+      </div>
 
-      {/* ──── Last Duration Banner ──── */}
       {lastDuration !== null && (
-        <div className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 p-4 text-white shadow-sm">
-          <div className="text-sm opacity-90">Last Duration</div>
-          <div className="text-2xl font-semibold mt-1">
+        <div className="rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-5">
+          <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+            Last Duration
+          </div>
+          <div className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
             {formatDuration(lastDuration)}
           </div>
         </div>
       )}
 
-      {/* ──── Upload Card ──── */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+      <div className="rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-6 space-y-5">
         <div>
-          <h2 className="text-sm font-semibold text-slate-800">
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
             Record / Upload Study Session
           </h2>
-          <p className="text-xs text-slate-500 mt-1">
-            Upload raw study video. Duration is read locally.
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            Upload a raw study video or submit a YouTube link.
           </p>
         </div>
 
-        {/* Error */}
         {error && (
-          <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-600">
+          <div className="rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 p-3 text-sm text-red-700 dark:text-red-300">
             {error}
           </div>
         )}
 
-        {/* ── YouTube input ── */}
         <div className="space-y-2">
-          <label className="block text-xs font-medium text-slate-600">
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
             YouTube Link
           </label>
           <div className="flex gap-2">
@@ -192,27 +164,25 @@ useEffect(() => {
               placeholder="https://www.youtube.com/watch?v=..."
               value={ytUrl}
               onChange={(e) => setYtUrl(e.target.value)}
-              className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition"
+              className="flex-1 rounded-xl bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 transition-all duration-200 outline-none focus:border-blue-500"
             />
             <button
               id="yt-submit-btn"
               onClick={handleYtSubmit}
               disabled={loading || !ytUrl.trim()}
-              className="rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 text-sm font-medium text-white transition"
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 text-sm font-bold"
             >
-              {loading ? "Processing…" : "Submit"}
+              {loading ? "Processing..." : "Submit"}
             </button>
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="flex items-center gap-3 text-xs text-slate-400">
-          <div className="flex-1 border-t border-slate-200" />
-          or
-          <div className="flex-1 border-t border-slate-200" />
+        <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex-1 border-t border-gray-200 dark:border-zinc-800" />
+          <span>or</span>
+          <div className="flex-1 border-t border-gray-200 dark:border-zinc-800" />
         </div>
 
-        {/* ── Local file upload (original) ── */}
         <label className="block cursor-pointer">
           <input
             type="file"
@@ -220,48 +190,49 @@ useEffect(() => {
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              handleFile(file);       // original local preview
-              setVideoFile(file);     // store for server upload
+              handleFile(file);
+              setVideoFile(file);
             }}
           />
 
-          <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 hover:border-indigo-400 hover:text-indigo-600 transition">
+          <div className="rounded-xl border-2 border-dashed border-gray-300 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-950 p-8 text-center text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all duration-200">
             Click to upload study video
           </div>
         </label>
 
         {durationMin !== null && (
-          <div className="rounded-lg bg-slate-50 p-4 space-y-3">
-            <div className="text-sm text-slate-700">
+          <div className="rounded-xl bg-gray-50 dark:bg-zinc-950 p-5 space-y-3 border border-gray-200 dark:border-zinc-800">
+            <div className="text-sm text-gray-700 dark:text-gray-300">
               <span className="font-medium">File:</span> {fileName}
             </div>
 
-            <div className="text-sm text-slate-700">
+            <div className="text-sm text-gray-700 dark:text-gray-300">
               Detected duration:
-              <span className="ml-1 font-semibold">
+              <span className="ml-1 font-semibold text-gray-900 dark:text-white">
                 {durationMin} min
               </span>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-3">
               <button
                 onClick={confirmTime}
-                className="flex-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 py-2 text-sm font-medium text-white transition"
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 px-4 py-2.5 text-sm font-bold"
               >
                 Add Study Time
+              </button>
+              <button
+                onClick={handleLocalSubmit}
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 px-4 py-2.5 text-sm font-bold"
+              >
+                Upload to Server
               </button>
             </div>
           </div>
         )}
 
-        {/* Loading indicator */}
         {loading && (
-          <div className="flex items-center justify-center gap-2 text-sm text-indigo-600">
-            <svg
-              className="animate-spin h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
+          <div className="flex items-center justify-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
               <circle
                 className="opacity-25"
                 cx="12"
@@ -276,51 +247,54 @@ useEffect(() => {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
               />
             </svg>
-            Processing video…
+            Processing video...
           </div>
         )}
       </div>
 
-      {/* ──── Stats Card ──── */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-        <h2 className="text-sm font-semibold text-slate-800">
+      <div className="rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm p-6 space-y-5">
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
           Video Stats
         </h2>
 
-        {/* Range buttons */}
         <div className="flex gap-2">
           {["daily", "weekly", "monthly"].map((r) => (
             <button
               key={r}
               id={`range-${r}-btn`}
               onClick={() => setRange(r)}
-              className={rangeBtnClass(r)}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
+                range === r
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "bg-gray-50 dark:bg-zinc-950 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 border border-gray-200 dark:border-zinc-800"
+              }`}
             >
               {r.charAt(0).toUpperCase() + r.slice(1)}
             </button>
           ))}
         </div>
 
-        {/* Stats content */}
         {stats && (
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-slate-800">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
               Total: {formatDuration(stats.totalSeconds)}
             </h3>
 
             {stats.data.length === 0 ? (
-              <p className="text-sm text-slate-400">No data for this range.</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                No data for this range.
+              </p>
             ) : (
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {stats.data.map((item) => (
                   <div
                     key={item.label}
-                    className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-2 text-sm"
+                    className="flex items-center justify-between rounded-xl bg-gray-50 dark:bg-zinc-950 px-4 py-3 text-sm border border-gray-200 dark:border-zinc-800"
                   >
-                    <span className="font-medium text-slate-700">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">
                       {item.label}
                     </span>
-                    <span className="text-indigo-600 font-semibold">
+                    <span className="text-blue-600 dark:text-blue-400 font-semibold font-mono">
                       {formatDuration(item.seconds)}
                     </span>
                   </div>

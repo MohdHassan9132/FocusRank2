@@ -85,15 +85,19 @@ async function getDailyStats(userId, now) {
 
 /* ─────────── Weekly: last 7 days, group by day name ─────────── */
 async function getWeeklyStats(userId, now) {
-  const startOfWeek = new Date(now)
-  startOfWeek.setDate(startOfWeek.getDate() - 6)
-  startOfWeek.setHours(0, 0, 0, 0)
+const startOfWeek = new Date(now)
+startOfWeek.setDate(now.getDate() - now.getDay()) // Sunday
+startOfWeek.setHours(0, 0, 0, 0)
+
+const endOfWeek = new Date(startOfWeek)
+endOfWeek.setDate(startOfWeek.getDate() + 6)
+endOfWeek.setHours(23, 59, 59, 999)
 
   const pipeline = [
     {
       $match: {
         user: userId,
-        date: { $gte: startOfWeek, $lte: now }
+        date: { $gte: startOfWeek, $lte: endOfWeek }
       }
     },
     {

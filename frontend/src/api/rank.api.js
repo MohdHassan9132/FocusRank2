@@ -21,6 +21,7 @@ export const fetchRankings = async (period) => {
     }
     
     const response = await API.get(endpoint);
+    console.log(API)
     return response.data;
   } catch (error) {
     console.error(`Error fetching ${period} rankings:`, error);

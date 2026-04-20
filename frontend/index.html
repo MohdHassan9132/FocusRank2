@@ -2,9 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Focus Rank</title>
+    <script>
+      (function () {
+        const savedTheme = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        const theme = savedTheme || (prefersDark ? "dark" : "light");
+
+        document.documentElement.classList.toggle("dark", theme === "dark");
+        document.documentElement.style.backgroundColor =
+          theme === "dark" ? "black" : "white";
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
